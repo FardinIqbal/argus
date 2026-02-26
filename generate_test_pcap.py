@@ -28,7 +28,7 @@ def http(dst, sport, dport, method, host, path, ua, ts_offset):
              "Accept: */*",
              "Connection: close",
              "", ""]
-    payload = "\r\n".join(l for l in lines if l is not None).encode()
+    payload = "\r\n".join(line for line in lines if line is not None).encode()
     pkt = (IP(src=SRC, dst=dst) /
            TCP(sport=sport, dport=dport, flags="PA", seq=1, ack=1) /
            Raw(load=payload))
