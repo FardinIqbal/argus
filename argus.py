@@ -60,7 +60,7 @@ def handle_dns(pkt):
     else:
         return None
 
-    if dns.qr != 0 or not dns.qd or dns.qd.qtype not in (1, 28):
+    if dns.qr != 0 or not dns.qd or dns.qd.qtype != 1:
         return None
 
     name = _decode(dns.qd.qname).rstrip(".")
