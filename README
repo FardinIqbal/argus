@@ -1,0 +1,136 @@
+Argus - Passive Network Sniffer
+===============================================================================
+
+CSE 363: Offensive Security - Homework 1
+Stony Brook University, Spring 2026
+
+
+DESCRIPTION
+-----------
+
+Argus is a passive network sniffer that monitors HTTP, TLS, and DNS traffic.
+It uses Scapy to capture and parse packets, supporting both live capture and
+offline pcap analysis. Argus detects protocols regardless of the port number
+used, making it useful for identifying hidden services on non-standard ports.
+
+Supported protocols:
+  - HTTP GET/POST/PUT requests (with automation/script detection)
+  - TLS ClientHello messages (with SNI extraction)
+  - DNS A record queries (with internal infrastructure TLD detection)
+
+
+DEPENDENCIES
+------------
+
+  - Python 3 (tested with Python 3.11+)
+  - Scapy (pip install scapy, or apt install python3-scapy on Kali Linux)
+  - cryptography (apt install python3-cryptography, usually pre-installed)
+
+All dependencies are pre-installed on Kali Linux 2025.4.
+
+
+USAGE
+-----
+
+  ./argus.py [-i interface] [-r tracefile] [expression]
+
+  -i interface    Live capture from the specified network interface (e.g., eth0).
+                  If not specified, Scapy auto-selects a default interface.
+
+  -r tracefile    Read packets from a pcap file (tcpdump format). Overrides -i.
+
+  expression      Optional BPF filter (same syntax as tcpdump). Examples:
+                    host 192.168.0.123
+                    port 80 or port 443
+                    src host 10.0.0.1 and tcp
+
+Examples:
+
+  # Live capture on eth0:
+  sudo ./argus.py -i eth0
+
+  # Read from a pcap file:
+  ./argus.py -r capture.pcap
+
+  # Live capture with BPF filter:
+  sudo ./argus.py -i eth0 host 192.168.1.100
+
+  # Analyze test trace:
+  ./argus.py -r test.pcap
+
+
+TECHNICAL APPROACH
+------------------
+
+Port-Independent Protocol Detection:
+
+  Standard tools rely on well-known port numbers (80, 443, 53) to identify
+  protocols. Argus instead inspects packet payloads to detect protocols on
+  any port:
+
+  DNS:  Checks if UDP payload parses as a valid DNS query with A record type.
+        Scapy's DNS layer handles standard port 53 automatically; for
+        non-standard ports, the raw UDP payload is manually parsed as DNS.
+
+  HTTP: Checks if TCP payload begins with "GET ", "POST ", or "PUT ".
+        Scapy's HTTP layer handles port 80 automatically; for non-standard
+        ports, the raw TCP payload is parsed for HTTP request lines and
+        headers (Host, User-Agent).
+
+  TLS:  Checks TCP payload for the TLS handshake signature:
+          byte[0] = 0x16 (handshake content type)
+          byte[1] = 0x03 (TLS major version)
+          byte[5] = 0x01 (ClientHello handshake type)
+        SNI is extracted from the Server Name Indication extension. If Scapy's
+        TLS parser fails, a manual binary parser extracts SNI from raw bytes.
+
+Automation Detection:
+
+  HTTP User-Agent strings are checked against known automation patterns:
+  curl, wget, python-requests, python-urllib, python-httpx, libwww-perl,
+  go-http-client, httpie. Matching requests are flagged with "AUTOMATION".
+
+Internal Infrastructure Detection:
+
+  DNS queries for domains ending in .local, .corp, or .internal are flagged
+  with "INTERNAL" as these TLDs are indicative of internal infrastructure.
+
+
+OUTPUT FORMAT
+-------------
+
+  TIMESTAMP PROTO SRC_IP:SRC_PORT -> DST_IP:DST_PORT [protocol-specific fields]
+
+  DNS:  timestamp DNS  src:port -> dst:port domain [INTERNAL]
+  HTTP: timestamp HTTP src:port -> dst:port host METHOD path [AUTOMATION ua]
+  TLS:  timestamp TLS  src:port -> dst:port hostname|NO SNI
+
+
+TEST TRACE (test.pcap)
+----------------------
+
+The test trace contains 12 packets covering all required cases:
+
+  #  Protocol  Port        Case
+  1  DNS       53 (std)    Normal domain (www.cs.stonybrook.edu)
+  2  DNS       5353        Normal domain on non-standard port
+  3  DNS       53 (std)    Internal domain (.local)
+  4  DNS       1053        Internal domain (.corp) on non-standard port
+  5  HTTP GET  80 (std)    Normal browser User-Agent
+  6  HTTP GET  8080        Normal browser User-Agent on non-standard port
+  7  HTTP POST 80 (std)    Automation detected (curl)
+  8  HTTP PUT  9090        Automation detected (python-requests) on non-standard port
+  9  TLS       443 (std)   ClientHello with SNI (google.com)
+  10 TLS       993         ClientHello with SNI on non-standard port
+  11 TLS       443 (std)   ClientHello without SNI
+  12 TLS       8443        ClientHello without SNI on non-standard port
+
+
+FILES
+-----
+
+  argus.py              Main sniffer tool
+  README                This file
+  test.pcap             Test traffic trace with all 12 cases
+  test.out              Output of ./argus.py -r test.pcap
+  generate_test_pcap.py Helper script to regenerate test.pcap
