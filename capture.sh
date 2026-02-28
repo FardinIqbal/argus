@@ -7,8 +7,16 @@ python3 -m http.server 8080 &
 python3 -m http.server 9090 &
 sleep 1
 
-echo "Starting tcpdump..."
-sudo tcpdump -i eth0 -w /tmp/capture.pcap &
+# Get our IP for non-standard port HTTP
+MY_IP=$(hostname -I | awk '{print $1}')
+echo "My IP: $MY_IP"
+
+echo "Starting tcpdump on eth0..."
+sudo tcpdump -i eth0 -w /tmp/capture_eth0.pcap &
+PID1=$!
+echo "Starting tcpdump on lo..."
+sudo tcpdump -i lo -w /tmp/capture_lo.pcap "port 8080 or port 9090" &
+PID2=$!
 sleep 3
 
 echo "=== DNS ==="
@@ -28,15 +36,19 @@ GOOGLE_IP=$(dig +short google.com A | head -1)
 IMAP_IP=$(dig +short imap.gmail.com A | head -1)
 echo "google=$GOOGLE_IP imap=$IMAP_IP"
 
-echo Q | openssl s_client -connect "$GOOGLE_IP":443 -servername google.com 2>/dev/null | head -1
-echo Q | openssl s_client -connect imap.gmail.com:993 2>/dev/null | head -1
+echo Q | openssl s_client -connect google.com:443 -servername google.com 2>/dev/null | head -1
+echo Q | openssl s_client -connect imap.gmail.com:993 -servername imap.gmail.com 2>/dev/null | head -1
 echo Q | openssl s_client -connect "$GOOGLE_IP":443 -noservername 2>/dev/null | head -1
 echo Q | openssl s_client -connect "$IMAP_IP":993 -noservername 2>/dev/null | head -1
 
 echo "=== Stopping ==="
 sleep 2
-sudo killall tcpdump
+sudo kill $PID1 $PID2 2>/dev/null
+wait $PID1 $PID2 2>/dev/null
 killall python3 2>/dev/null
+
+echo "=== Merging captures ==="
+mergecap -w /tmp/capture.pcap /tmp/capture_eth0.pcap /tmp/capture_lo.pcap
 
 echo "=== Testing with argus ==="
 python3 argus.py -r /tmp/capture.pcap
