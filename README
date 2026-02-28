@@ -109,7 +109,7 @@ OUTPUT FORMAT
 TEST TRACE (test.pcap)
 ----------------------
 
-The test trace contains 12 packets covering all required cases:
+The test trace covers all 12 required cases (with additional system DNS traffic):
 
   #  Protocol  Port        Case
   1  DNS       53 (std)    Normal domain (www.cs.stonybrook.edu)
@@ -123,7 +123,7 @@ The test trace contains 12 packets covering all required cases:
   9  TLS       443 (std)   ClientHello with SNI (google.com)
   10 TLS       993         ClientHello with SNI on non-standard port
   11 TLS       443 (std)   ClientHello without SNI
-  12 TLS       8443        ClientHello without SNI on non-standard port
+  12 TLS       993         ClientHello without SNI on non-standard port
 
 
 FILES
@@ -133,4 +133,4 @@ FILES
   README                This file
   test.pcap             Test traffic trace with all 12 cases
   test.out              Output of ./argus.py -r test.pcap
-  generate_test_pcap.py Helper script to regenerate test.pcap
+
