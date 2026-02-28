@@ -2,6 +2,9 @@
 # Run this on Kali to capture all 12 test cases
 cd ~/cse363-hw1-network-sniffing
 
+echo "Cleaning old captures..."
+sudo rm -f /tmp/capture.pcap /tmp/capture_eth0.pcap /tmp/capture_lo.pcap
+
 echo "Starting HTTP servers..."
 python3 -m http.server 8080 &
 python3 -m http.server 9090 &
@@ -48,7 +51,7 @@ wait $PID1 $PID2 2>/dev/null
 killall python3 2>/dev/null
 
 echo "=== Merging captures ==="
-mergecap -w /tmp/capture.pcap /tmp/capture_eth0.pcap /tmp/capture_lo.pcap
+sudo mergecap -w /tmp/capture.pcap /tmp/capture_eth0.pcap /tmp/capture_lo.pcap
 
 echo "=== Testing with argus ==="
 python3 argus.py -r /tmp/capture.pcap
