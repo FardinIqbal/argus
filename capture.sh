@@ -39,8 +39,8 @@ GOOGLE_IP=$(dig +short google.com A | head -1)
 IMAP_IP=$(dig +short imap.gmail.com A | head -1)
 echo "google=$GOOGLE_IP imap=$IMAP_IP"
 
-echo Q | openssl s_client -connect google.com:443 -servername google.com 2>/dev/null | head -1
-echo Q | openssl s_client -connect imap.gmail.com:993 -servername imap.gmail.com 2>/dev/null | head -1
+echo Q | openssl s_client -connect "$GOOGLE_IP":443 -servername google.com 2>/dev/null | head -1
+echo Q | openssl s_client -connect "$IMAP_IP":993 -servername imap.gmail.com 2>/dev/null | head -1
 echo Q | openssl s_client -connect "$GOOGLE_IP":443 -noservername 2>/dev/null | head -1
 echo Q | openssl s_client -connect "$IMAP_IP":993 -noservername 2>/dev/null | head -1
 
@@ -61,4 +61,21 @@ cp /tmp/capture.pcap test.pcap
 python3 argus.py -r test.pcap > test.out
 cat test.out
 
+echo ""
+echo "=== Verification ==="
+TOTAL=$(wc -l < test.out)
+DNS_COUNT=$(grep -c "^.*DNS " test.out || true)
+HTTP_COUNT=$(grep -c "^.*HTTP " test.out || true)
+TLS_COUNT=$(grep -c "^.*TLS " test.out || true)
+echo "Total lines: $TOTAL (DNS=$DNS_COUNT HTTP=$HTTP_COUNT TLS=$TLS_COUNT)"
+echo ""
+echo "Coverage check:"
+grep -q "DNS.*INTERNAL" test.out && echo "  [OK] DNS internal" || echo "  [MISS] DNS internal"
+grep -q "HTTP.*AUTOMATION" test.out && echo "  [OK] HTTP automation" || echo "  [MISS] HTTP automation"
+grep -q "TLS.*NO SNI" test.out && echo "  [OK] TLS no-SNI" || echo "  [MISS] TLS no-SNI"
+grep -q "TLS.*google" test.out && echo "  [OK] TLS SNI (google)" || echo "  [MISS] TLS SNI (google)"
+grep -q "TLS.*imap\|TLS.*gmail" test.out && echo "  [OK] TLS non-std port" || echo "  [MISS] TLS non-std port"
+[ "$TOTAL" -ge 12 ] && echo "  [OK] >= 12 lines" || echo "  [WARN] Only $TOTAL lines (expected >= 12)"
+
+echo ""
 echo "DONE"

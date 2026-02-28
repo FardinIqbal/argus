@@ -135,9 +135,14 @@ def handle_tls(pkt):
     if _TLS and pkt.haslayer(TLSClientHello):
         return _sni_layer(pkt[TLSClientHello])
 
-    if not pkt.haslayer(Raw):
+    # Get raw bytes: prefer Raw layer, fall back to TCP payload
+    if pkt.haslayer(Raw):
+        raw = pkt[Raw].load
+    elif pkt.haslayer(TCP):
+        raw = bytes(pkt[TCP].payload)
+    else:
         return None
-    raw = pkt[Raw].load
+
     if len(raw) < 6 or raw[0] != 0x16 or raw[1] != 0x03 or raw[5] != 0x01:
         return None
 
