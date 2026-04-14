@@ -176,4 +176,4 @@ pip install scapy cryptography
 
 ## Related Projects
 
-- [tcpscan](https://github.com/FardinIqbal/tcpscan) - TCP SYN scanner with 6-type service fingerprinting. The active reconnaissance counterpart to Argus.
+Part of a 5-project security research portfolio: [Secure Vault](https://github.com/FardinIqbal/secure-vault) (password manager), [NetSec Toolkit](https://github.com/FardinIqbal/netsec-toolkit) (certificate analyzer), [tcpscan](https://github.com/FardinIqbal/tcpscan) (TCP scanner), [x86 Exploit Lab](https://github.com/FardinIqbal/x86-exploit-lab) (buffer overflow research).
