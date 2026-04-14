@@ -73,13 +73,13 @@ def tls_hello(dst, sport, dport, server_name, ts_offset):
 
 packets = sorted([
     # DNS standard/non-standard, normal/INTERNAL
-    dns("8.8.8.8",         35706, 53,   "www.cs.stonybrook.edu", 1.398317),
+    dns("8.8.8.8",         35706, 53,   "www.example.org", 1.398317),
     dns("1.1.1.1",         41234, 5353, "www.example.com",       2.112345),
     dns("192.168.190.1",   43054, 53,   "esxi1.local",           3.398317),
     dns("10.0.0.1",        44000, 1053, "db.corp",               4.223456),
 
     # HTTP standard/non-standard, normal/AUTOMATION
-    http("23.185.0.4",     36239, 80,   "GET",  "www.cs.stonybrook.edu", "/~cse363/",
+    http("23.185.0.4",     36239, 80,   "GET",  "www.example.org", "/test/",
          "Mozilla/5.0 (X11; Linux x86_64)",  9.224487),
     http("93.184.216.34",  37000, 8080, "GET",  "www.example.com",       "/index.html",
          "Mozilla/5.0 (X11; Linux x86_64)",  10.334567),

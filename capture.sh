@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run this on Kali to capture all 12 test cases
-cd ~/cse363-hw1-network-sniffing
+cd ~/argus
 
 echo "Cleaning old captures..."
 sudo rm -f /tmp/capture.pcap /tmp/capture_eth0.pcap /tmp/capture_lo.pcap
@@ -29,9 +29,9 @@ dig @8.8.8.8 esxi1.local +short +timeout=3 +tries=1
 dig @8.8.8.8 -p 1053 db.corp +timeout=1 +tries=1
 
 echo "=== HTTP ==="
-curl -s -m 5 -A "Mozilla/5.0 (X11; Linux x86_64)" http://www.cs.stonybrook.edu/~cse363/ -o /dev/null -w "HTTP 80 normal: %{http_code}\n"
+curl -s -m 5 -A "Mozilla/5.0 (X11; Linux x86_64)" http://www.example.org/test/ -o /dev/null -w "HTTP 80 normal: %{http_code}\n"
 curl -s -m 5 -A "Mozilla/5.0 (X11; Linux x86_64)" http://127.0.0.1:8080/ -o /dev/null -w "HTTP 8080 normal: %{http_code}\n"
-curl -s -m 5 -A "curl/8.11.1" -X POST http://www.cs.stonybrook.edu/~cse363/ -o /dev/null -w "HTTP 80 auto: %{http_code}\n"
+curl -s -m 5 -A "curl/8.11.1" -X POST http://www.example.org/test/ -o /dev/null -w "HTTP 80 auto: %{http_code}\n"
 curl -s -m 5 -A "python-requests/2.31.0" -X PUT http://127.0.0.1:9090/upload -o /dev/null -w "HTTP 9090 auto: %{http_code}\n"
 
 echo "=== TLS ==="

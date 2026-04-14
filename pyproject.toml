@@ -1,0 +1,37 @@
+[project]
+name = "argus"
+version = "1.0.0"
+description = "Passive network sniffer with deep packet inspection for HTTP, TLS, and DNS"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [
+    {name = "Fardin Iqbal"},
+]
+keywords = ["network", "sniffer", "packet-inspection", "tls", "dns", "http", "security"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Networking :: Monitoring",
+    "Topic :: Security",
+]
+dependencies = [
+    "scapy>=2.5.0",
+    "cryptography>=41.0.0",
+]
+
+[project.scripts]
+argus = "argus:main"
+
+[project.urls]
+Repository = "https://github.com/FardinIqbal/argus"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
